@@ -62,6 +62,7 @@
 };
 
 &i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
@@ -81,6 +82,7 @@
 };
 
 &i2c2 {
+	pinctrl-0 = <&i2c2_scl_pb10 &i2c2_sda_pc12>;
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 };
@@ -90,18 +92,32 @@
 };
 
 &i2s2 {
+	pinctrl-0 = <&i2s2_ck_pc7 &i2s2_sd_pc1>;
 	status = "okay";
 };
+
+&spi1_nss_pa4 { slew-rate = "very-high-speed"; };
 
 &spi1 {
+	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
+		     &spi1_miso_pa6 &spi1_mosi_pa7>;
 	status = "okay";
 };
+
+&spi2_nss_pb9 { slew-rate = "very-high-speed"; };
 
 &spi2 {
-	status = "okay";
+	pinctrl-0 = <&spi2_nss_pb9 &spi2_sck_pd3
+		     &spi2_miso_pb14 &spi2_mosi_pb15>;
+	/* Cannot be used together with i2s2. */
+	/* status = "okay"; */
 };
 
+&spi4_nss_pe11 { slew-rate = "very-high-speed"; };
+
 &spi4 {
+	pinctrl-0 = <&spi4_nss_pe11 &spi4_sck_pe12
+		     &spi4_miso_pe13 &spi4_mosi_pe14>;
 	status = "okay";
 };
 
@@ -110,7 +126,7 @@
 
 	pwm3: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim3_ch1_pwm_pb4 &tim3_ch3_pwm_pc8>;
+		pinctrl-0 = <&tim3_ch1_pb4 &tim3_ch3_pc8>;
 	};
 };
 
@@ -119,7 +135,7 @@
 
 	pwm4: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim4_ch3_pwm_pd14 &tim4_ch4_pwm_pd15>;
+		pinctrl-0 = <&tim4_ch3_pd14 &tim4_ch4_pd15>;
 	};
 };
 
@@ -128,7 +144,7 @@
 
 	pwm9: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim9_ch1_pwm_pe5 &tim9_ch2_pwm_pe6>;
+		pinctrl-0 = <&tim9_ch1_pe5 &tim9_ch2_pe6>;
 	};
 };
 

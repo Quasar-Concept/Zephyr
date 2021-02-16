@@ -407,13 +407,13 @@ static int ssd1306_init(const struct device *dev)
 #if DT_INST_ON_BUS(0, spi)
 	driver->spi_config.frequency = DT_INST_PROP(0, spi_max_frequency);
 	driver->spi_config.operation = SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
-				       SPI_WORD_SET(8) | SPI_LINES_SINGLE |
-				       SPI_HOLD_ON_CS | SPI_LOCK_ON;
+				       SPI_WORD_SET(8) | SPI_LINES_SINGLE;
 	driver->spi_config.slave = DT_INST_REG_ADDR(0);
 #if DT_INST_SPI_DEV_HAS_CS_GPIOS(0)
 	driver->cs_ctrl.gpio_dev = device_get_binding(
 				   DT_INST_SPI_DEV_CS_GPIOS_LABEL(0));
 	driver->cs_ctrl.gpio_pin = DT_INST_SPI_DEV_CS_GPIOS_PIN(0);
+	driver->cs_ctrl.gpio_dt_flags = DT_INST_SPI_DEV_CS_GPIOS_FLAGS(0);
 	driver->cs_ctrl.delay = 0U;
 	driver->spi_config.cs = &driver->cs_ctrl;
 #endif /* DT_INST_SPI_DEV_HAS_CS_GPIOS(0) */
@@ -455,7 +455,7 @@ static struct display_driver_api ssd1306_driver_api = {
 	.set_orientation = ssd1306_set_orientation,
 };
 
-DEVICE_AND_API_INIT(ssd1306, DT_INST_LABEL(0), ssd1306_init,
+DEVICE_DT_INST_DEFINE(0, ssd1306_init, device_pm_control_nop,
 		    &ssd1306_driver, NULL,
 		    POST_KERNEL, CONFIG_APPLICATION_INIT_PRIORITY,
 		    &ssd1306_driver_api);

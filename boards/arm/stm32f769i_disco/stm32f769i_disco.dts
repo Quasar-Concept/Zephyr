@@ -74,14 +74,33 @@ arduino_serial: &usart6 {};
 };
 
 &i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb8 &i2c1_sda_pb9>;
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 };
 
 &spi2 {
+	pinctrl-0 = <&spi2_sck_pa12 &spi2_miso_pb14 &spi2_mosi_pb15>;
 	status = "okay";
 };
 
 &mac {
 	status = "okay";
+	pinctrl-0 = <&eth_mdc_pc1
+		     &eth_rxd0_pc4
+		     &eth_rxd1_pc5
+		     &eth_ref_clk_pa1
+		     &eth_mdio_pa2
+		     &eth_crs_dv_pa7
+		     &eth_tx_en_pg11
+		     &eth_txd0_pg13
+		     &eth_txd1_pg14>;
+};
+
+&sdmmc2 {
+	status = "okay";
+	pinctrl-0 = <&sdmmc2_d0_pg9 &sdmmc2_d1_pg10
+		     &sdmmc2_d2_pb3 &sdmmc2_d3_pb4
+		     &sdmmc2_ck_pd6 &sdmmc2_cmd_pd7>;
+	cd-gpios = <&gpioi 15 GPIO_ACTIVE_LOW>;
 };

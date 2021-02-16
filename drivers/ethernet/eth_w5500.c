@@ -161,10 +161,13 @@ static int w5500_command(const struct device *dev, uint8_t cmd)
 
 	w5500_spi_write(dev, W5500_S0_CR, &cmd, 1);
 	do {
-		w5500_spi_read(dev, W5500_S0_CR, &reg, 1);
-		if (end - z_tick_get() <= 0) {
+		int64_t remaining = end - z_tick_get();
+
+		if (remaining <= 0) {
 			return -EIO;
 		}
+
+		w5500_spi_read(dev, W5500_S0_CR, &reg, 1);
 
 		k_msleep(1);
 	} while (reg != 0);
@@ -346,14 +349,14 @@ static int w5500_set_config(const struct device *dev,
 	if (IS_ENABLED(CONFIG_NET_PROMISCUOUS_MODE) &&
 	    type == ETHERNET_CONFIG_TYPE_PROMISC_MODE) {
 		if (config->promisc_mode) {
-			if (!(mode & W5500_S0_MR_MF))
+			if (!(mode & BIT(mr)))
 				return -EALREADY;
 			}
 
 			/* clear */
 			WRITE_BIT(mode, mr, 0);
 	} else {
-		if (mode & mr) {
+		if (mode & BIT(mr)) {
 			return -EALREADY;
 		}
 
@@ -585,7 +588,7 @@ static const struct w5500_config w5500_0_config = {
 	.timeout = CONFIG_ETH_W5500_TIMEOUT,
 };
 
-ETH_NET_DEVICE_INIT(eth_w5500, DT_INST_LABEL(0),
+ETH_NET_DEVICE_DT_INST_DEFINE(0,
 		    w5500_init, device_pm_control_nop,
 		    &w5500_0_runtime, &w5500_0_config,
 		    CONFIG_ETH_INIT_PRIORITY, &w5500_api_funcs, NET_ETH_MTU);

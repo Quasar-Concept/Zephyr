@@ -11,21 +11,23 @@
 #include <stdlib.h>
 
 extern void test_permission_inheritance(void);
+extern void test_inherit_resource_pool(void);
+
+extern void test_mem_domain_setup(void);
 extern void test_mem_domain_valid_access(void);
 extern void test_mem_domain_invalid_access(void);
-extern void test_mem_domain_partitions_user_rw(void);
-extern void test_mem_domain_partitions_user_ro(void);
-extern void test_mem_domain_partitions_supervisor_rw(void);
-extern void test_mem_domain_add_partitions_invalid(void);
-extern void test_mem_domain_add_partitions_simple(void);
-extern void test_mem_domain_remove_partitions_simple(void);
-extern void test_mem_domain_remove_partitions(void);
-extern void test_mem_domain_api_kernel_thread_only(void);
-extern void test_mem_part_auto_determ_size(void);
-extern void test_mem_part_auto_determ_size_per_mpu(void);
-extern void test_mem_part_inherit_by_child_thr(void);
+extern void test_mem_domain_no_writes_to_ro(void);
+extern void test_mem_domain_remove_add_partition(void);
+extern void test_mem_domain_api_supervisor_only(void);
+extern void test_mem_domain_boot_threads(void);
+extern void test_mem_domain_migration(void);
+extern void test_mem_domain_init_fail(void);
+extern void test_mem_domain_remove_part_fail(void);
+
 extern void test_macros_obtain_names_data_bss(void);
 extern void test_mem_part_assign_bss_vars_zero(void);
+extern void test_mem_part_auto_determ_size(void);
+
 extern void test_kobject_access_grant(void);
 extern void test_syscall_invalid_kobject(void);
 extern void test_thread_without_kobject_permission(void);
@@ -49,8 +51,8 @@ extern void test_create_new_supervisor_thread_from_user(void);
 extern void test_create_new_essential_thread_from_user(void);
 extern void test_create_new_higher_prio_thread_from_user(void);
 extern void test_create_new_invalid_prio_thread_from_user(void);
-extern void test_inherit_resource_pool(void);
 extern void test_mark_thread_exit_uninitialized(void);
+extern void test_mem_part_overlap(void);
 
 /* Flag needed to figure out if the fault was expected or not. */
 extern volatile bool valid_fault;
@@ -101,6 +103,8 @@ static inline void set_fault_valid(bool valid)
 #define MEM_REGION_ALLOC (Z_ARC_MPU_ALIGN)
 #elif defined(CONFIG_ARM)
 #define MEM_REGION_ALLOC (Z_THREAD_MIN_STACK_ALIGN)
+#elif defined(CONFIG_RISCV)
+#define MEM_REGION_ALLOC (Z_RISCV_PMP_ALIGN)
 #else
 #error "Test suite not compatible for the given architecture"
 #endif
@@ -112,7 +116,7 @@ static inline void set_fault_valid(bool valid)
 #ifndef _TEST_SYSCALLS_H_
 #define _TEST_SYSCALLS_H_
 
-__syscall struct k_mem_pool *ret_resource_pool_ptr(void);
+__syscall struct k_heap *ret_resource_pool_ptr(void);
 
 #include <syscalls/mem_protect.h>
 

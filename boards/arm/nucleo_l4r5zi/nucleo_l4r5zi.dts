@@ -79,14 +79,32 @@
 };
 
 &i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
 	status = "okay";
 };
 
 &spi1 {
+	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
+		     &spi1_miso_pa6 &spi1_mosi_pa7>;
+	status = "okay";
+};
+
+&spi2 {
+	pinctrl-0 = <&spi2_nss_pb12 &spi2_sck_pb13
+		     &spi2_miso_pb14 &spi2_mosi_pb15>;
+	status = "okay";
+};
+
+&spi3 {
+	/* SPI3 on the ST Morpho Connector CN7 pins 17, 1, 2, 3*/
+	pinctrl-0 = <&spi3_nss_pa15 &spi3_sck_pc10
+		     &spi3_miso_pc11 &spi3_mosi_pc12>;
 	status = "okay";
 };
 
 &usbotg_fs {
+	pinctrl-0 = <&usb_otg_fs_dm_pa11 &usb_otg_fs_dp_pa12
+		     &usb_otg_fs_id_pa10>;
 	status = "okay";
 };
 
@@ -95,7 +113,7 @@
 
 	pwm2: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim2_ch1_pwm_pa0>;
+		pinctrl-0 = <&tim2_ch1_pa0>;
 	};
 };
 
@@ -122,5 +140,6 @@
 };
 
 &adc1 {
+	pinctrl-0 = <&adc1_in1_pc0>;
 	status = "okay";
 };

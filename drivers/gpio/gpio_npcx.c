@@ -49,8 +49,8 @@ struct gpio_npcx_data {
 
 #define HAL_INSTANCE(dev) (struct gpio_reg *)(DRV_CONFIG(dev)->base)
 
-/* Soc specific GPIO functions */
-const struct device *soc_get_gpio_dev(int port)
+/* Platform specific GPIO functions */
+const struct device *npcx_get_gpio_dev(int port)
 {
 	if (port >= gpio_devs_count)
 		return NULL;
@@ -102,7 +102,7 @@ static int gpio_npcx_config(const struct device *dev,
 		inst->PPULL &= ~mask;
 	}
 
-	/* Set level 0:low 1:high*/
+	/* Set level 0:low 1:high */
 	if ((flags & GPIO_OUTPUT_INIT_HIGH) != 0)
 		inst->PDOUT |= mask;
 	else if ((flags & GPIO_OUTPUT_INIT_LOW) != 0)
@@ -205,14 +205,14 @@ static int gpio_npcx_pin_interrupt_configure(const struct device *dev,
 		miwu_trig = NPCX_MIWU_TRIG_BOTH;
 
 	/* Call MIWU routine to setup interrupt configuration */
-	soc_miwu_interrupt_configure(&config->wui_maps[pin],
+	npcx_miwu_interrupt_configure(&config->wui_maps[pin],
 					miwu_mode, miwu_trig);
 
 	/* Enable/Disable irq of wake-up input sources */
 	if (mode == GPIO_INT_MODE_DISABLED) {
-		soc_miwu_irq_disable(&config->wui_maps[pin]);
+		npcx_miwu_irq_disable(&config->wui_maps[pin]);
 	} else {
-		soc_miwu_irq_enable(&config->wui_maps[pin]);
+		npcx_miwu_irq_enable(&config->wui_maps[pin]);
 	}
 
 	return 0;
@@ -237,11 +237,11 @@ static int gpio_npcx_manage_callback(const struct device *dev,
 	}
 
 	/* Initialize WUI information in unused bits field */
-	soc_miwu_init_gpio_callback(miwu_cb, &config->wui_maps[pin],
+	npcx_miwu_init_gpio_callback(miwu_cb, &config->wui_maps[pin],
 			config->port);
 
 	/* Insert or remove a IO callback which being called in MIWU ISRs */
-	return soc_miwu_manage_gpio_callback(miwu_cb, set);
+	return npcx_miwu_manage_gpio_callback(miwu_cb, set);
 }
 
 /* GPIO driver registration */
@@ -273,15 +273,15 @@ int gpio_npcx_init(const struct device *dev)
 		},                                                             \
 		.base = DT_INST_REG_ADDR(inst),                                \
 		.port = inst,                                                  \
-		.wui_size = DT_NPCX_WUI_ITEMS_LEN(inst),                       \
-		.wui_maps = DT_NPCX_WUI_ITEMS_LIST(inst)                       \
+		.wui_size = NPCX_DT_WUI_ITEMS_LEN(inst),                       \
+		.wui_maps = NPCX_DT_WUI_ITEMS_LIST(inst)                       \
 	};                                                                     \
 									       \
 	static struct gpio_npcx_data gpio_npcx_data_##inst;	               \
 									       \
-	DEVICE_AND_API_INIT(gpio_npcx_##inst,                                  \
-			    DT_INST_LABEL(inst),                               \
+	DEVICE_DT_INST_DEFINE(inst,					       \
 			    gpio_npcx_init,                                    \
+			    device_pm_control_nop,			       \
 			    &gpio_npcx_data_##inst,                            \
 			    &gpio_npcx_cfg_##inst,                             \
 			    POST_KERNEL,                                       \
@@ -291,7 +291,7 @@ int gpio_npcx_init(const struct device *dev)
 DT_INST_FOREACH_STATUS_OKAY(NPCX_GPIO_DEVICE_INIT)
 
 /* GPIO module instances */
-#define NPCX_GPIO_DEV(inst) DEVICE_GET(gpio_npcx_##inst),
+#define NPCX_GPIO_DEV(inst) DEVICE_DT_INST_GET(inst),
 static const struct device *gpio_devs[] = {
 	DT_INST_FOREACH_STATUS_OKAY(NPCX_GPIO_DEV)
 };

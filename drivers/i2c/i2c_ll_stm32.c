@@ -10,6 +10,8 @@
 #include <sys/util.h>
 #include <kernel.h>
 #include <soc.h>
+#include <stm32_ll_i2c.h>
+#include <stm32_ll_rcc.h>
 #include <errno.h>
 #include <drivers/i2c.h>
 #include <drivers/pinmux.h>
@@ -188,35 +190,13 @@ static int i2c_stm32_init(const struct device *dev)
 	cfg->irq_config_func(dev);
 #endif
 
-	if (cfg->pinctrl_list_size != 0) {
-#if DT_HAS_COMPAT_STATUS_OKAY(st_stm32f1_pinctrl)
-		int remap;
-		/* Check that remap configuration is coherent across pins */
-		remap = stm32_dt_pinctrl_remap_check(cfg->pinctrl_list,
-						     cfg->pinctrl_list_size);
-		if (remap < 0) {
-			return remap;
-		}
-
-		/* A valid remapping configuration is provided */
-		/* Apply remapping before proceeding with pin configuration */
-		LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
-
-		switch ((uint32_t)cfg->i2c) {
-#if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c1), okay)
-		case DT_REG_ADDR(DT_NODELABEL(i2c1)):
-			if (remap == REMAP_1) {
-				LL_GPIO_AF_EnableRemap_I2C1();
-			} else {
-				LL_GPIO_AF_DisableRemap_I2C1();
-			}
-			break;
-#endif
-		}
-#endif /* DT_HAS_COMPAT_STATUS_OKAY(st_stm32f1_pinctrl) */
-
-		stm32_dt_pinctrl_configure(cfg->pinctrl_list,
-					   cfg->pinctrl_list_size);
+	/* Configure dt provided device signals when available */
+	ret = stm32_dt_pinctrl_configure(cfg->pinctrl_list,
+					 cfg->pinctrl_list_size,
+					 (uint32_t)cfg->i2c);
+	if (ret < 0) {
+		LOG_ERR("I2C pinctrl setup failed (%d)", ret);
+		return ret;
 	}
 
 	/*
@@ -295,7 +275,7 @@ static int i2c_stm32_init(const struct device *dev)
 		IRQ_CONNECT(DT_IRQN(DT_NODELABEL(name)),		\
 			    DT_IRQ(DT_NODELABEL(name), priority),	\
 			    stm32_i2c_combined_isr,			\
-			    DEVICE_GET(i2c_stm32_##name), 0);		\
+			    DEVICE_DT_GET(DT_NODELABEL(name)), 0);	\
 		irq_enable(DT_IRQN(DT_NODELABEL(name)));		\
 	} while (0)
 #else
@@ -305,14 +285,14 @@ static int i2c_stm32_init(const struct device *dev)
 			    DT_IRQ_BY_NAME(DT_NODELABEL(name), event,	\
 								priority),\
 			    stm32_i2c_event_isr,			\
-			    DEVICE_GET(i2c_stm32_##name), 0);		\
+			    DEVICE_DT_GET(DT_NODELABEL(name)), 0);	\
 		irq_enable(DT_IRQ_BY_NAME(DT_NODELABEL(name), event, irq));\
 									\
 		IRQ_CONNECT(DT_IRQ_BY_NAME(DT_NODELABEL(name), error, irq),\
 			    DT_IRQ_BY_NAME(DT_NODELABEL(name), error,	\
 								priority),\
 			    stm32_i2c_error_isr,			\
-			    DEVICE_GET(i2c_stm32_##name), 0);		\
+			    DEVICE_DT_GET(DT_NODELABEL(name)), 0);	\
 		irq_enable(DT_IRQ_BY_NAME(DT_NODELABEL(name), error, irq));\
 	} while (0)
 #endif /* CONFIG_I2C_STM32_COMBINED_INTERRUPT */
@@ -369,8 +349,8 @@ static const struct i2c_stm32_config i2c_stm32_cfg_##name = {		\
 									\
 static struct i2c_stm32_data i2c_stm32_dev_data_##name;			\
 									\
-DEVICE_AND_API_INIT(i2c_stm32_##name, DT_LABEL(DT_NODELABEL(name)),	\
-		    &i2c_stm32_init, &i2c_stm32_dev_data_##name,	\
+DEVICE_DT_DEFINE(DT_NODELABEL(name), &i2c_stm32_init,			\
+		    device_pm_control_nop, &i2c_stm32_dev_data_##name,	\
 		    &i2c_stm32_cfg_##name,				\
 		    POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	\
 		    &api_funcs);					\

@@ -45,6 +45,14 @@
 };
 
 &spi1 {
+	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
+		     &spi1_miso_pa6 &spi1_mosi_pa7>;
+	status = "okay";
+};
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	clock-frequency = <I2C_BITRATE_FAST>;
 	status = "okay";
 };
 
@@ -53,11 +61,12 @@
 
 	pwm2: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim2_ch1_pwm_pa0>;
+		pinctrl-0 = <&tim2_ch1_pa0>;
 	};
 };
 
 &can1 {
+	pinctrl-0 = <&can1_rx_pa11 &can1_tx_pa12>;
 	bus-speed = <125000>;
 	status = "okay";
 };

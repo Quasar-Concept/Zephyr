@@ -21,6 +21,11 @@
 #endif /* DT_HAS_COMPAT_STATUS_OKAY(st_stm32f1_pinctrl) */
 #include "pinmux/pinmux.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /**
  * @brief structure to convey pinctrl information for stm32 soc
  * value
@@ -143,23 +148,31 @@ void stm32_setup_pins(const struct pin_config *pinconf,
  *        format
  *
  * @param *pinctrl pointer to soc_gpio_pinctrl list
- * @param list_size provided list size
+ * @param list_size list size
+ * @param base device base register value
  *
+ * @return 0 on success, -EINVAL otherwise
  */
-void stm32_dt_pinctrl_configure(const struct soc_gpio_pinctrl *pinctrl,
-				size_t list_size);
+int stm32_dt_pinctrl_configure(const struct soc_gpio_pinctrl *pinctrl,
+			       size_t list_size, uint32_t base);
 
+#if DT_HAS_COMPAT_STATUS_OKAY(st_stm32f1_pinctrl)
 /**
- * @brief Helper function to check provided pinctrl remap configuration (Pin
- *        remapping configuration should be the same on all pins)
+ * @brief Helper function to check and apply provided pinctrl remap
+ *        configuration
+ *
+ * Check operation verifies that pin remapping configuration is the same on all
+ * pins. If configuration is valid AFIO clock is enabled and remap is applied
  *
  * @param *pinctrl pointer to soc_gpio_pinctrl list
- * @param list_size provided list size
+ * @param list_size list size
+ * @param base device base register value
  *
- * @return remap value on success, -EINVAL otherwise
+ * @return 0 value on success, -EINVAL otherwise
  */
-int stm32_dt_pinctrl_remap_check(const struct soc_gpio_pinctrl *pinctrl,
-				size_t list_size);
+int stm32_dt_pinctrl_remap(const struct soc_gpio_pinctrl *pinctrl,
+			   size_t list_size, uint32_t base);
+#endif /* DT_HAS_COMPAT_STATUS_OKAY(st_stm32f1_pinctrl) */
 
 /* common pinmux device name for all STM32 chips */
 #define STM32_PINMUX_NAME "stm32-pinmux"
@@ -194,6 +207,10 @@ int stm32_dt_pinctrl_remap_check(const struct soc_gpio_pinctrl *pinctrl,
 #include "pinmux_stm32mp1x.h"
 #elif CONFIG_SOC_SERIES_STM32WBX
 #include "pinmux_stm32wbx.h"
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif  /* ZEPHYR_DRIVERS_PINMUX_STM32_PINMUX_STM32_H_ */
